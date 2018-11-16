@@ -7,4 +7,4 @@
 // var photo = document.querySelector("#exampleInputFile")
 // var admin = document.querySelector("#inputAdmin")
 
-new UserController("form-user-create", "table-user");
+new UserController("form-user-create", "form-user-update", "table-user");

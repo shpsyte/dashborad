@@ -1,6 +1,7 @@
  class UserController {
-     constructor(formId, tableId) {
-         this.formEl = document.getElementById(formId);
+     constructor(formIdCreate, formIdUpdate, tableId) {
+         this.formEl = document.getElementById(formIdCreate);
+         this.formUpdateEl = document.getElementById(formIdUpdate);
          this.tableEl = document.getElementById(tableId);
          this.init();
      }
@@ -15,7 +16,7 @@
          //button save
          this.formEl.addEventListener("submit", (e) => {
              e.preventDefault();
-             const values = this.getValues();
+             const values = this.getValues(this.formEl);
 
              if (!values) return false;
 
@@ -33,6 +34,22 @@
              }).catch((error) => {
                  console.error(error);
              });
+         });
+
+         this.formUpdateEl.addEventListener("submit", e => {
+
+             e.preventDefault();
+             var btn = this.formUpdateEl.querySelector("[type=submit]");
+             btn.disabled = true;
+
+             const values = this.getValues(this.formUpdateEl);
+
+
+
+
+
+
+
          });
 
          //button cancel edit
@@ -91,11 +108,11 @@
      //     fileReader.readAsDataURL(file);
      // }
 
-     getValues() {
+     getValues(formEl) {
          const user = {};
          let isValid = true;
 
-         [...this.formEl.elements].forEach((field) => {
+         [...formEl.elements].forEach((field) => {
 
              if (["name", "email", "password"].indexOf(field.name) > -1) {
                  //pegar o pai
