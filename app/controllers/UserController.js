@@ -6,10 +6,13 @@
      }
 
      init() {
-         this.onSubmit();
+         this.addEventToButton();
+
      }
 
-     onSubmit() {
+     addEventToButton() {
+
+         //button save
          this.formEl.addEventListener("submit", (e) => {
              e.preventDefault();
              const values = this.getValues();
@@ -31,6 +34,24 @@
                  console.error(error);
              });
          });
+
+         //button cancel edit
+         document.querySelector("#box-user-update .btn-cancel").addEventListener("click", e => {
+             this.showPanelCreate();
+         });
+
+     }
+
+
+     showPanelCreate() {
+         document.querySelector("#box-user-create").style.display = "block";
+         document.querySelector("#box-user-update").style.display = "none";
+     }
+
+     showPanelEdit() {
+         document.querySelector("#box-user-create").style.display = "none";
+         document.querySelector("#box-user-update").style.display = "block";
+
      }
 
      getPhoto() {
@@ -122,15 +143,50 @@
                 <td>${(dataUser.admin) ? "Sim" : "Não"}</td>
                 <td>${Utils.dateFormat(dataUser.createAt)}</td>
                 <td>
-                <button type="button" class="btn btn-primary btn-xs btn-flat">Editar</button>
+                <button type="button" class="btn btn-primary btn-xs btn-flat btn-edit">Editar</button>
                 <button type="button" class="btn btn-danger btn-xs btn-flat">Excluir</button>
                 </td>
             `;
+
+         tr.querySelector(".btn-edit").addEventListener("click", e => {
+             this.loadValues(JSON.parse(tr.dataset.user));
+             this.showPanelEdit();
+
+         });
 
          this.tableEl.appendChild(tr);
 
          this.updateCount();
 
+     }
+
+     loadValues(dataUser) {
+         let form = document.querySelector("#form-user-update");
+         for (let name in dataUser) {
+             let field = form.querySelector("[name=" + name.replace("_", "") + "]");
+
+
+             if (field) {
+
+                 switch (field.type) {
+                     case "file":
+                         continue;
+                         break;
+                     case "radio":
+                         field = form.querySelector("[name=" + name.replace("_", "") + "][value=" + dataUser[name] + "]");
+                         field.checked = true;
+
+                         break;
+                     case "checkbox":
+                         field.checked = dataUser[name];
+                         break;
+                     default:
+                         field.value = dataUser[name];
+                 }
+
+             }
+
+         }
      }
 
      updateCount() {
