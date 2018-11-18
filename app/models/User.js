@@ -54,6 +54,24 @@ class User {
         this._photo = value;
     }
 
+    loadFromJSON(json){
+
+        for (let name in json){
+
+            switch(name)
+            {
+                case "createAt":
+                  this[name] = new Date(json[name]);
+                break;
+                default:
+                this[name] = json[name];
+            }
+
+        }
+
+
+    }
+
 
 
 }

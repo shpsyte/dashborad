@@ -8,6 +8,8 @@
 
      init() {
          this.addEventToButton();
+         this.selectAll();
+         console.clear();
 
      }
 
@@ -28,6 +30,7 @@
                  values.photo = response;
                  btn.disabled = false;
                  this.formEl.reset();
+                 this.insert(values);
                  this.addLine(values);
              }, (error) => {
                  console.error(error);
@@ -44,10 +47,43 @@
 
              const values = this.getValues(this.formUpdateEl);
 
+             let index = this.formUpdateEl.dataset.trIndex;
+             let tr = this.tableEl.rows[index];
+             let userOld = JSON.parse(tr.dataset.user);
+             let result = Object.assign({}, userOld, values);
+
+             if (!values._photo) {
+                 result._photo = userOld._photo;
+             }
+
+             console.log(result);
+
+             tr.dataset.user = JSON.stringify(result);
 
 
+             tr.innerHTML =
+                 `
+                <td><img src="${result._photo}" alt="User Image" class="img-circle img-sm"></td>
+                <td>${result._name}</td>
+                <td>${result._email}</td>
+                <td>${(result._admin) ? "Sim" : "Não"}</td>
+                <td>${Utils.dateFormat(result._createAt)}</td>
+                <td>
+                <button type="button" class="btn btn-primary btn-xs btn-flat btn-edit">Editar</button>
+                <button type="button" class="btn btn-danger btn-xs btn-flat">Excluir</button>
+                </td>
+            `;
+
+             tr.querySelector(".btn-edit").addEventListener("click", e => {
+                 this.loadValues(JSON.parse(tr.dataset.user), tr.sectionRowIndex);
+                 this.showPanelEdit();
+
+             });
 
 
+             this.updateCount();
+             btn.disabled = false;
+             this.showPanelCreate();
 
 
          });
@@ -58,6 +94,7 @@
          });
 
      }
+
 
 
      showPanelCreate() {
@@ -146,9 +183,45 @@
              user.photo, user.admin);
      }
 
+
+     selectAll(){
+         let users = this.getUsersStorage();
+
+        users.forEach(dataUser => {
+
+            let user = new User();
+            user.loadFromJSON(dataUser);
+
+            this.addLine(user);
+
+        });
+    }
+
+    getUsersStorage(){
+       let users = [];
+       if (sessionStorage.getItem("users"))
+       {
+           users = JSON.parse(sessionStorage.getItem("users"));
+       }
+       return users;
+    }
+
+    insert(data){
+        let users = [];
+        if (sessionStorage.getItem("users"))
+        {
+            users = JSON.parse(sessionStorage.getItem("users"));
+        }
+        users.push(data);
+
+       sessionStorage.setItem("users", JSON.stringify(users));
+     }
+
      addLine(dataUser) {
          // console.log('AddLine', dataUser);
          var tr = document.createElement("tr");
+
+
 
          tr.dataset.user = JSON.stringify(dataUser);
 
@@ -161,15 +234,22 @@
                 <td>${Utils.dateFormat(dataUser.createAt)}</td>
                 <td>
                 <button type="button" class="btn btn-primary btn-xs btn-flat btn-edit">Editar</button>
-                <button type="button" class="btn btn-danger btn-xs btn-flat">Excluir</button>
+                <button type="button" class="btn btn-danger btn-xs btn-flat btn-delete">Excluir</button>
                 </td>
             `;
 
-         tr.querySelector(".btn-edit").addEventListener("click", e => {
-             this.loadValues(JSON.parse(tr.dataset.user));
-             this.showPanelEdit();
+        tr.querySelector(".btn-delete").addEventListener("click", e => {
+            if (confirm("Deseja realmente excluir ?")){
+                tr.remove();
+                this.updateCount();
+            }
+        });
 
-         });
+        tr.querySelector(".btn-edit").addEventListener("click", e => {
+            this.loadValues(JSON.parse(tr.dataset.user), tr.sectionRowIndex);
+            this.showPanelEdit();
+
+        });
 
          this.tableEl.appendChild(tr);
 
@@ -177,10 +257,14 @@
 
      }
 
-     loadValues(dataUser) {
-         let form = document.querySelector("#form-user-update");
+     loadValues(dataUser, rowIndex) {
+
+         this.formUpdateEl.dataset.trIndex = rowIndex;
+
+
+
          for (let name in dataUser) {
-             let field = form.querySelector("[name=" + name.replace("_", "") + "]");
+             let field = this.formUpdateEl.querySelector("[name=" + name.replace("_", "") + "]");
 
 
              if (field) {
@@ -190,7 +274,7 @@
                          continue;
                          break;
                      case "radio":
-                         field = form.querySelector("[name=" + name.replace("_", "") + "][value=" + dataUser[name] + "]");
+                         field = this.formUpdateEl.querySelector("[name=" + name.replace("_", "") + "][value=" + dataUser[name] + "]");
                          field.checked = true;
 
                          break;
@@ -204,6 +288,8 @@
              }
 
          }
+
+         this.formUpdateEl.querySelector(".photo").src = dataUser._photo;
      }
 
      updateCount() {
